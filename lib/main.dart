@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 void main() {
@@ -23,8 +24,8 @@ class _GroupChatAppState extends State<GroupChatApp> {
       'transports': ['websocket'],
     });
     socket.onConnect((_) {
-      print('Connected to server');
-      socket.emit('joinGroup', _selectedGroup); // Join the default group
+      print('Connected to the server');
+      // socket.emit('joinGroup', _selectedGroup); // Join the default group
     });
     socket.on('messages', (data) {
       print(data);
@@ -32,14 +33,16 @@ class _GroupChatAppState extends State<GroupChatApp> {
       setState(() {
         _messages.clear();
         messages.forEach((message) {
-          _messages.add("${message['username']}: ${message['message']}");
+          _messages.add(
+              "${message['username']}: ${message['message']}, ${message['created']}");
         });
       });
     });
     socket.on('message', (data) {
       print(data);
       setState(() {
-        _messages.add("${data['username']}: ${data['message']}");
+        _messages
+            .add("${data['username']}: ${data['message']}, ${data['created']}");
       });
     });
   }
@@ -70,12 +73,14 @@ class _GroupChatAppState extends State<GroupChatApp> {
     return MaterialApp(
       title: 'Group Chat',
       home: Scaffold(
+        backgroundColor: Color(0xff00002D),
         appBar: AppBar(
+          backgroundColor: Colors.black,
           title: Row(
             children: [
-              Icon(Icons.group),
+              Icon(Icons.monitor_heart),
               SizedBox(width: 8),
-              Text('Group: $_selectedGroup'),
+              Text('Global Chat: $_selectedGroup'),
             ],
           ),
         ),
@@ -96,15 +101,18 @@ class _GroupChatAppState extends State<GroupChatApp> {
                 ),
               ),
               ListTile(
-                title: Text('Group 1'),
+                title: Text('Global Chat'),
+                subtitle:Column (
+                  mainAxisAlignment: MainAxisAlignment.start,
+                    children:[Text('Welcome to the Global Chat'),Text('This is where Kalakumbh comes to talk!'),]),
                 onTap: () => _changeGroup('group1'),
               ),
               ListTile(
-                title: Text('Group 2'),
+                title: Text('Singers'),
                 onTap: () => _changeGroup('group2'),
               ),
               ListTile(
-                title: Text('Group 3'),
+                title: Text('Instrumentalists'),
                 onTap: () => _changeGroup('group3'),
               ),
             ],
@@ -112,6 +120,17 @@ class _GroupChatAppState extends State<GroupChatApp> {
         ),
         body: Column(
           children: [
+            Container(
+              alignment: Alignment.topLeft,
+              width: 10000,
+              height: 50,
+              color: Colors.black,
+              child: Center(
+                  child: Text(
+                "Welcome to the Global Chat",
+                style: TextStyle(color: Colors.white, fontSize: 25),
+              )),
+            ), // Group Chat
             Expanded(
               child: ListView.builder(
                 itemCount: _messages.length,
@@ -119,15 +138,51 @@ class _GroupChatAppState extends State<GroupChatApp> {
                   String username = "";
                   String messageText = "";
 
+                  // final formattedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+
                   if (_messages[index].isEmpty) return Container();
                   final message = _messages[index].split(':');
                   username = message[0].trim();
-                  messageText = message[1].trim();
+                  messageText = message[1].split(',')[0].trim();
+                  final timestamp = message[1].split(',')[1].trim();
+                  print(timestamp.runtimeType);
+                  // convert timestamp to an int
+                  final int timestamp1 =
+                      int.parse(message[1].split(',')[1].trim());
+                  print(timestamp1.runtimeType);
+                  print(timestamp1);
+                  // convert timestamp to a DateTime object
+                  final DateTime dateTime =
+                      DateTime.fromMillisecondsSinceEpoch(timestamp1);
+                  print(dateTime);
+                  String formattedDateTime =
+                      DateFormat('HH:mm').format(dateTime);
+                  print(formattedDateTime);
+                  // final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
 
                   return Card(
+                    color: Color(0xff00002D),
                     child: ListTile(
-                      title: Text(username),
-                      subtitle: Text(messageText),
+                      title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            username,
+                            style:
+                                TextStyle(color: Colors.yellow, fontSize: 22),
+                          ),
+                          Text(
+                            formattedDateTime,
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                          ),
+                        ],
+                      ),
+                      subtitle: Container(
+                          margin: EdgeInsets.only(top: 5),
+                          child: Text(
+                            messageText,
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          )),
                     ),
                   );
                 },
