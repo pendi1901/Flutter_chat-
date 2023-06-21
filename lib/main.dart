@@ -16,6 +16,7 @@ class _GroupChatAppState extends State<GroupChatApp> {
   final List<String> _messages = [];
   late IO.Socket socket;
   String _selectedGroup = 'group1'; // Default selected group
+  late BuildContext scaffoldContext; // Variable to hold the scaffold's context
 
   @override
   void initState() {
@@ -66,150 +67,169 @@ class _GroupChatAppState extends State<GroupChatApp> {
       _messages.clear();
     });
     socket.emit('joinGroup', groupId);
+
+    // Close the drawer using scaffoldContext
+    Navigator.pop(scaffoldContext);
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Group Chat',
-      home: Scaffold(
-        backgroundColor: Color(0xff00002D),
-        appBar: AppBar(
-          backgroundColor: Colors.black,
-          title: Row(
-            children: [
-              Icon(Icons.monitor_heart),
-              SizedBox(width: 8),
-              Text('Global Chat: $_selectedGroup'),
-            ],
-          ),
-        ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                ),
-                child: Text(
-                  'Groups',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-              ListTile(
-                title: Text('Global Chat'),
-                subtitle:Column (
-                  mainAxisAlignment: MainAxisAlignment.start,
-                    children:[Text('Welcome to the Global Chat'),Text('This is where Kalakumbh comes to talk!'),]),
-                onTap: () => _changeGroup('group1'),
-              ),
-              ListTile(
-                title: Text('Singers'),
-                onTap: () => _changeGroup('group2'),
-              ),
-              ListTile(
-                title: Text('Instrumentalists'),
-                onTap: () => _changeGroup('group3'),
-              ),
-            ],
-          ),
-        ),
-        body: Column(
-          children: [
-            Container(
-              alignment: Alignment.topLeft,
-              width: 10000,
-              height: 50,
-              color: Colors.black,
-              child: Center(
-                  child: Text(
-                "Welcome to the Global Chat",
-                style: TextStyle(color: Colors.white, fontSize: 25),
-              )),
-            ), // Group Chat
-            Expanded(
-              child: ListView.builder(
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  String username = "";
-                  String messageText = "";
+      home: Builder(
+        // Add Builder widget to get the context for closing the drawer
+        builder: (BuildContext context) {
+          // Assign the context to the scaffoldContext variable
+          scaffoldContext = context;
 
-                  // final formattedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
-
-                  if (_messages[index].isEmpty) return Container();
-                  final message = _messages[index].split(':');
-                  username = message[0].trim();
-                  messageText = message[1].split(',')[0].trim();
-                  final timestamp = message[1].split(',')[1].trim();
-                  print(timestamp.runtimeType);
-                  // convert timestamp to an int
-                  final int timestamp1 =
-                      int.parse(message[1].split(',')[1].trim());
-                  print(timestamp1.runtimeType);
-                  print(timestamp1);
-                  // convert timestamp to a DateTime object
-                  final DateTime dateTime =
-                      DateTime.fromMillisecondsSinceEpoch(timestamp1);
-                  print(dateTime);
-                  String formattedDateTime =
-                      DateFormat('HH:mm').format(dateTime);
-                  print(formattedDateTime);
-                  // final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-                  return Card(
-                    color: Color(0xff00002D),
-                    child: ListTile(
-                      title: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            username,
-                            style:
-                                TextStyle(color: Colors.yellow, fontSize: 22),
-                          ),
-                          Text(
-                            formattedDateTime,
-                            style: TextStyle(color: Colors.white, fontSize: 15),
-                          ),
-                        ],
-                      ),
-                      subtitle: Container(
-                          margin: EdgeInsets.only(top: 5),
-                          child: Text(
-                            messageText,
-                            style: TextStyle(color: Colors.white, fontSize: 18),
-                          )),
-                    ),
-                  );
-                },
+          return Scaffold(
+            backgroundColor: Color(0xff00002D),
+            appBar: AppBar(
+              backgroundColor: Colors.black,
+              title: Row(
+                children: [
+                  Icon(Icons.monitor_heart),
+                  SizedBox(width: 8),
+                  Text('Global Chat: $_selectedGroup'),
+                ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
+            drawer: Drawer(
+              child: ListView(
+                padding: EdgeInsets.zero,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(
-                        labelText: 'Message',
-                        border: OutlineInputBorder(),
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                    ),
+                    child: Text(
+                      'Groups',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
                       ),
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.send),
-                    onPressed: _sendMessage,
+                  ListTile(
+                    title: Text('Global Chat'),
+                    subtitle: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text('Welcome to the Global Chat'),
+                        Text('This is where Kalakumbh comes to talk!'),
+                      ],
+                    ),
+                    onTap: () => _changeGroup('group1'),
+                  ),
+                  ListTile(
+                    title: Text('Singers'),
+                    onTap: () => _changeGroup('group2'),
+                  ),
+                  ListTile(
+                    title: Text('Instrumentalists'),
+                    onTap: () => _changeGroup('group3'),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+            body: Column(
+              children: [
+                Container(
+                  alignment: Alignment.topLeft,
+                  width: 10000,
+                  height: 50,
+                  color: Colors.black,
+                  child: Center(
+                    child: Text(
+                      "Welcome to the Global Chat",
+                      style: TextStyle(color: Colors.white, fontSize: 25),
+                    ),
+                  ),
+                ), // Group Chat
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      String username = "";
+                      String messageText = "";
+
+                      // final formattedDateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
+
+                      if (_messages[index].isEmpty) return Container();
+                      final message = _messages[index].split(':');
+                      username = message[0].trim();
+                      messageText = message[1].split(',')[0].trim();
+                      final timestamp = message[1].split(',')[1].trim();
+                      print(timestamp.runtimeType);
+                      // convert timestamp to an int
+                      final int timestamp1 =
+                          int.parse(message[1].split(',')[1].trim());
+                      print(timestamp1.runtimeType);
+                      print(timestamp1);
+                      // convert timestamp to a DateTime object
+                      final DateTime dateTime =
+                          DateTime.fromMillisecondsSinceEpoch(timestamp1);
+                      print(dateTime);
+                      String formattedDateTime =
+                          DateFormat('HH:mm').format(dateTime);
+                      print(formattedDateTime);
+                      // final DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+                      return Card(
+                        color: Color(0xff00002D),
+                        child: ListTile(
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                username,
+                                style: TextStyle(
+                                    color: Colors.yellow, fontSize: 22),
+                              ),
+                              Text(
+                                formattedDateTime,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 15),
+                              ),
+                            ],
+                          ),
+                          subtitle: Container(
+                            margin: EdgeInsets.only(top: 5),
+                            child: Text(
+                              messageText,
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 18),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            labelText: 'Message',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.send),
+                        onPressed: _sendMessage,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
